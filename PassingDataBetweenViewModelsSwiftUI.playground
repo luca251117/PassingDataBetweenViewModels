@@ -1,0 +1,61 @@
+import SwiftUI
+import Combine
+import PlaygroundSupport
+
+var str = "Hello, playground"
+
+
+final class ViewModel: ObservableObject {
+    
+    @Published var testingID: String?
+    
+    func didTapButton() {
+        self.testingID = UUID().uuidString
+    }
+    
+}
+
+struct TestMainView: View {
+    
+    @StateObject var viewModel: ViewModel = .init()
+    
+    var body: some View {
+        VStack {
+            Button(action: { self.viewModel.didTapButton() }) {
+                Text("TAP")
+            }
+            Spacer()
+            SubView(text: $viewModel.testingID)
+        }.frame(width: 300, height: 400)
+    }
+    
+}
+
+
+class SubviewModel: ObservableObject {
+    
+    @Published var subViewText: String?
+    
+    func updateText(text: String?) {
+        self.subViewText = text
+    }
+}
+struct SubView: View {
+    
+    @StateObject var viewModel: SubviewModel = .init()
+    
+    @Binding var test: String?
+    init(text: Binding<String?>) {
+        self._test = text
+    }
+    
+    var body: some View {
+        Text(self.viewModel.subViewText ?? "no text")
+            .onChange(of: self.test) { (text) in
+                self.viewModel.updateText(text: text)
+            }
+            .onAppear(perform: { self.viewModel.updateText(text: test) })
+    }
+}
+
+PlaygroundPage.current.setLiveView(TestMainView())
